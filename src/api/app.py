@@ -1,38 +1,24 @@
 """FastAPI application factory for AEGIS."""
 
-from pathlib import Path
 from fastapi import FastAPI
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from src.config.settings import Settings
 
 
-class AppSettings(BaseSettings):
-    """Application settings using pydantic-settings."""
-
-    app_name: str = "AEGIS"
-    app_version: str = "0.1.0"
-    debug: bool = False
-
-    model_config = SettingsConfigDict(
-        env_prefix="AEGIS_",
-        env_file=".env",
-    )
-
-
-def create_app(settings: AppSettings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None) -> FastAPI:
     """Create and configure the FastAPI application.
 
     Args:
-        settings: Optional AppSettings instance. If not provided, default settings are used.
+        settings: Optional Settings instance. If not provided, default settings are used.
 
     Returns:
         Configured FastAPI application instance.
     """
     if settings is None:
-        settings = AppSettings()
+        settings = Settings()
 
     app = FastAPI(
-        title=settings.app_name,
-        version=settings.app_version,
+        title="AEGIS",
+        version="0.1.0",
         debug=settings.debug,
     )
 
