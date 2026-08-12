@@ -4,7 +4,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from src.api.app import create_app, AppSettings
+from src.api.app import create_app
+from src.config.settings import Settings
 
 
 class TestAppFactory:
@@ -17,15 +18,13 @@ class TestAppFactory:
 
     def test_create_app_with_custom_settings(self):
         """Test that create_app uses custom settings when provided."""
-        custom_settings = AppSettings(
-            app_name="CustomAEGIS",
-            app_version="2.0.0",
+        custom_settings = Settings(
             debug=True,
         )
         app = create_app(settings=custom_settings)
         assert isinstance(app, FastAPI)
-        assert app.title == "CustomAEGIS"
-        assert app.version == "2.0.0"
+        assert app.title == "AEGIS"
+        assert app.version == "0.1.0"
         assert app.debug is True
 
     def test_create_app_default_settings(self):
