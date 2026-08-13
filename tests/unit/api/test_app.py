@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from src.api.app import create_app
 from src.config.settings import Settings
+from src.core.governor import ResourceGovernor
 
 
 class TestAppFactory:
@@ -33,6 +34,28 @@ class TestAppFactory:
         assert app.title == "AEGIS"
         assert app.version == "0.1.0"
         assert app.debug is False
+
+    def test_create_app_attaches_governor(self):
+        """Test that create_app attaches ResourceGovernor to app.state."""
+        app = create_app()
+        assert hasattr(app.state, 'governor')
+        assert isinstance(app.state.governor, ResourceGovernor)
+
+    def test_create_app_governor_has_correct_limits(self):
+        """Test that governor is configured with limits from settings."""
+        app = create_app()
+        assert app.state.governor.max_ai_calls == 2
+        assert app.state.governor.max_tool_calls == 5
+
+    def test_create_app_governor_with_custom_limits(self):
+        """Test that governor uses custom limits from settings."""
+        custom_settings = Settings(
+            max_concurrent_ai_calls=10,
+            max_concurrent_tool_calls=20
+        )
+        app = create_app(settings=custom_settings)
+        assert app.state.governor.max_ai_calls == 10
+        assert app.state.governor.max_tool_calls == 20
 
 
 class TestHealthEndpoint:
