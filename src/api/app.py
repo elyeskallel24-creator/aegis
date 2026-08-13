@@ -3,6 +3,8 @@
 from fastapi import FastAPI
 from src.config.settings import Settings
 from src.api.middleware import correlation_id_middleware
+from src.api.exception_handlers import aegis_error_handler, generic_exception_handler
+from src.api.errors import AegisError
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -25,6 +27,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # Register correlation ID middleware
     app.middleware("http")(correlation_id_middleware)
+
+    # Register exception handlers
+    app.add_exception_handler(AegisError, aegis_error_handler)
+    app.add_exception_handler(Exception, generic_exception_handler)
 
     # Register health endpoint
     @app.get("/health/live", tags=["health"])
