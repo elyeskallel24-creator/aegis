@@ -38,6 +38,7 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.0",
     "httpx2>=2.10.0",
+    "pytest-asyncio>=1.0",
 ]
 docs = [
     "sphinx>=6.0",
