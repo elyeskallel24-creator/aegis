@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from src.config.settings import Settings
+from src.api.middleware import correlation_id_middleware
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -21,6 +22,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version="0.1.0",
         debug=settings.debug,
     )
+
+    # Register correlation ID middleware
+    app.middleware("http")(correlation_id_middleware)
 
     # Register health endpoint
     @app.get("/health/live", tags=["health"])
