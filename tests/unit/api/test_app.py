@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from src.api.app import create_app
 from src.config.settings import Settings
 from src.core.governor import ResourceGovernor
+from src.core.events import EventBus
 
 
 class TestAppFactory:
@@ -56,6 +57,13 @@ class TestAppFactory:
         app = create_app(settings=custom_settings)
         assert app.state.governor.max_ai_calls == 10
         assert app.state.governor.max_tool_calls == 20
+
+    def test_create_app_attaches_event_bus(self):
+        """Test that create_app attaches EventBus to app.state."""
+        app = create_app()
+        assert hasattr(app.state, 'event_bus')
+        assert isinstance(app.state.event_bus, EventBus)
+
 
 
 class TestHealthEndpoint:

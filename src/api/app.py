@@ -3,6 +3,7 @@
 from fastapi import FastAPI
 from src.config.settings import Settings
 from src.core.governor import ResourceGovernor
+from src.core.events import EventBus
 from src.api.middleware import correlation_id_middleware
 from src.api.exception_handlers import aegis_error_handler, generic_exception_handler
 from src.api.errors import AegisError
@@ -32,6 +33,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_tool_calls=settings.max_concurrent_tool_calls
     )
     app.state.governor = governor
+
+    # Instantiate and attach the event bus
+    event_bus = EventBus()
+    app.state.event_bus = event_bus
 
     # Register correlation ID middleware
     app.middleware("http")(correlation_id_middleware)
