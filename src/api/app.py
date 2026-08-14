@@ -1,5 +1,6 @@
 """FastAPI application factory for AEGIS."""
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from src.config.settings import Settings
 from src.core.governor import ResourceGovernor
@@ -7,6 +8,23 @@ from src.core.events import EventBus
 from src.api.middleware import correlation_id_middleware
 from src.api.exception_handlers import aegis_error_handler, generic_exception_handler
 from src.api.errors import AegisError
+from src.core.database import init_db_pool, close_db_pool
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    settings = Settings()
+    
+    # Initialize database pool
+    pool = await init_db_pool(settings.database)
+    app.state.pool = pool
+    
+    yield
+    
+    # Shutdown
+    await close_db_pool(app.state.pool)
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -25,6 +43,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         title="AEGIS",
         version="0.1.0",
         debug=settings.debug,
+        lifespan=lifespan,
     )
 
     # Instantiate and attach the resource governor

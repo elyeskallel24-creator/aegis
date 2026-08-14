@@ -1,7 +1,26 @@
 """Unit tests for Settings class."""
 
 import os
-from src.config.settings import Settings
+from src.config.settings import Settings, DatabaseSettings
+
+
+class TestDatabaseSettingsDefaults:
+    """Test that DatabaseSettings uses safe defaults."""
+
+    def test_database_url_default(self):
+        """Test default database URL."""
+        db_settings = DatabaseSettings()
+        assert db_settings.database_url == "postgresql://postgres:postgres@localhost:5432/aegis"
+
+
+class TestDatabaseSettingsEnvironmentOverride:
+    """Test that environment variables override DatabaseSettings defaults."""
+
+    def test_database_url_override(self, monkeypatch):
+        """Test AEGIS_DB_DATABASE_URL overrides default."""
+        monkeypatch.setenv("AEGIS_DB_DATABASE_URL", "postgresql://user:pass@host:5432/mydb")
+        db_settings = DatabaseSettings()
+        assert db_settings.database_url == "postgresql://user:pass@host:5432/mydb"
 
 
 class TestSettingsDefaults:
@@ -41,6 +60,12 @@ class TestSettingsDefaults:
         """Test max concurrent tool calls defaults to 5."""
         settings = Settings()
         assert settings.max_concurrent_tool_calls == 5
+
+    def test_database_settings_default(self):
+        """Test that database settings are initialized."""
+        settings = Settings()
+        assert settings.database is not None
+        assert settings.database.database_url == "postgresql://postgres:postgres@localhost:5432/aegis"
 
 
 class TestSettingsEnvironmentOverride:
