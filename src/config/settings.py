@@ -1,7 +1,17 @@
 """Settings and configuration management using pydantic-settings."""
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
+class DatabaseSettings(BaseSettings):
+    """Database configuration settings."""
+    
+    database_url: str = "postgresql://postgres:postgres@localhost:5432/aegis"
+    
+    model_config = SettingsConfigDict(
+        env_prefix="AEGIS_DB_",
+        extra='ignore',
+    )
 
 class Settings(BaseSettings):
     """
@@ -22,6 +32,8 @@ class Settings(BaseSettings):
     # Concurrency limits
     max_concurrent_ai_calls: int = 2
     max_concurrent_tool_calls: int = 5
+    # Database settings
+    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
 
     model_config = SettingsConfigDict(
         env_prefix="AEGIS_",
