@@ -57,6 +57,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     event_bus = EventBus()
     app.state.event_bus = event_bus
 
+    # Initialize agent components
+    from src.core.tool_registry import ToolRegistry
+    from src.core.mock_llm import MockLLMProvider
+    from src.core.agent import Agent
+    from src.core.chat import ChatHistory
+
+    tool_registry = ToolRegistry()
+    llm_provider = MockLLMProvider()
+    agent = Agent(llm_provider, tool_registry, governor)
+    app.state.agent = agent
+    app.state.chat_history = ChatHistory()
+
+    # Register chat router
+    from src.api.chat import router as chat_router
+    app.include_router(chat_router)
+
     # Register correlation ID middleware
     app.middleware("http")(correlation_id_middleware)
 
