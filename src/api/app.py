@@ -69,6 +69,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.agent = agent
     app.state.chat_history = ChatHistory()
 
+    # Initialize metrics collector
+    from src.core.metrics import MetricsCollector
+    metrics_collector = MetricsCollector()
+    app.state.metrics = metrics_collector
+
+    # Register metrics router
+    from src.api.metrics import router as metrics_router
+    app.include_router(metrics_router)
+
     # Register chat router
     from src.api.chat import router as chat_router
     app.include_router(chat_router)

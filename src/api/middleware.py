@@ -1,63 +1,41 @@
-"""FastAPI middleware for correlation ID handling."""
+"""Request middleware for AEGIS."""
 
+import time
 import uuid
-from fastapi import Request, Response
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 from src.utils.logger import correlation_id_ctx
 
 
 class CorrelationIDMiddleware(BaseHTTPMiddleware):
-    """Middleware to handle correlation ID propagation."""
-    
+    """Middleware to inject and propagate correlation IDs."""
+
     async def dispatch(self, request: Request, call_next):
-        """Extract or generate correlation ID, store in context, add to response."""
-        # Get or generate correlation ID
-        corr_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
-        
-        # Store in context for duration of request
-        token = correlation_id_ctx.set(corr_id)
-        
-        try:
-            response = await call_next(request)
-        finally:
-            # Restore previous context
-            correlation_id_ctx.reset(token)
-        
-        # Add to response headers
-        response.headers["X-Correlation-ID"] = corr_id
-        
+        correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+        correlation_id_ctx.set(correlation_id)
+
+        start_time = time.time()
+        response = await call_next(request)
+        duration = time.time() - start_time
+
+        if hasattr(request.app.state, 'metrics'):
+            request.app.state.metrics.record_request(request.url.path, duration)
+
+        response.headers["X-Correlation-ID"] = correlation_id
         return response
 
 
-# Keep the function-based middleware for backward compatibility
 async def correlation_id_middleware(request: Request, call_next):
-    """Extract or generate correlation ID, store in context, add to response.
-    
-    Args:
-        request: Incoming FastAPI request.
-        call_next: Next middleware/handler in chain.
-        
-    Returns:
-        Response with X-Correlation-ID header.
-    """
-    # Get or generate correlation ID
-    corr_id = request.headers.get("X-Correlation-ID", str(uuid.uuid4()))
-    
-    # Store in context for duration of request
-    token = correlation_id_ctx.set(corr_id)
-    
-    try:
-        response = await call_next(request)
-    except Exception as e:
-        # Re-raise after cleanup - let exception handlers deal with it
-        correlation_id_ctx.reset(token)
-        raise
-    
-    # Restore previous context
-    correlation_id_ctx.reset(token)
-    
-    # Add to response headers
-    response.headers["X-Correlation-ID"] = corr_id
-    
+    """Functional middleware alternative."""
+    correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+    correlation_id_ctx.set(correlation_id)
+
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+
+    if hasattr(request.app.state, 'metrics'):
+        request.app.state.metrics.record_request(request.url.path, duration)
+
+    response.headers["X-Correlation-ID"] = correlation_id
     return response
