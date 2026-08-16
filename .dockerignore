@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+build/
+dist/
+
+# Testing & CI
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+tests/
+scripts/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Git & Docker
+.git/
+.gitignore
+.dockerignore
+Dockerfile
